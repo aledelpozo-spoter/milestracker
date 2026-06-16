@@ -1,0 +1,25 @@
+{
+  "name": "milestracker-agent",
+  "version": "1.0.0",
+  "description": "MilesTracker automated agent — scrapes Smiles & LATAM promos 2x/day",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scrape": "node scraper.js",
+    "prices": "node priceScraper.js",
+    "optimize": "node optimizer.js",
+    "notify": "node notifier.js",
+    "run-all": "node scraper.js && node priceScraper.js && node optimizer.js && node notifier.js",
+    "dry-run": "node scraper.js --dry-run",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "cheerio": "^1.0.0",
+    "node-fetch": "^3.3.2",
+    "playwright": "^1.49.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

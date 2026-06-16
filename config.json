@@ -1,0 +1,157 @@
+{
+  "scenarios": {
+    "conservative": {
+      "monthly_usd": 40,
+      "label": "Conservador",
+      "miles_per_month_low": 15000,
+      "miles_per_month_high": 20000,
+      "strategy": "Solo Club Smiles 10K + puntos Galicia + esperar Hot Sale"
+    },
+    "moderate": {
+      "monthly_usd": 100,
+      "label": "Moderado",
+      "miles_per_month_low": 40000,
+      "miles_per_month_high": 55000,
+      "strategy": "Club 10K + compra en promos 200%+ + Galicia + LATAM ocasional"
+    },
+    "aggressive": {
+      "monthly_usd": 200,
+      "label": "Agresivo",
+      "miles_per_month_low": 80000,
+      "miles_per_month_high": 120000,
+      "strategy": "Club 10K + compras agresivas en cada promo + Galicia + LATAM activo"
+    }
+  },
+  "family": {
+    "adults": 2,
+    "children": [{ "age": 5, "pays_miles": true }],
+    "infants": [{ "age": 1.5, "pays_miles": false }],
+    "total_pax_miles": 3,
+    "note": "Bebé no paga millas, solo tasas (~USD 50-100/tramo)"
+  },
+  "destinations": [
+    {
+      "code": "MIA",
+      "name": "Miami",
+      "from": "EZE",
+      "programs": ["smiles", "latam"],
+      "economy_per_pax": [70000, 90000],
+      "business_per_pax": [120000, 160000],
+      "hot_sale_economy": [40000, 55000],
+      "airlines": ["GOL", "American Airlines", "Avianca"],
+      "priority": 1
+    },
+    {
+      "code": "JNB",
+      "name": "Johannesburgo",
+      "from": "EZE",
+      "programs": ["smiles"],
+      "economy_per_pax": [120000, 160000],
+      "business_per_pax": [200000, 280000],
+      "airlines": ["Ethiopian Airlines", "South African Airways"],
+      "route": "EZE→GRU→ADD→JNB",
+      "priority": 2
+    },
+    {
+      "code": "FCO",
+      "name": "Roma",
+      "from": "EZE",
+      "programs": ["smiles", "latam"],
+      "economy_per_pax": [80000, 120000],
+      "business_per_pax": [150000, 220000],
+      "airlines": ["ITA Airways", "Air Europa", "TAP"],
+      "priority": 3
+    },
+    {
+      "code": "MAD",
+      "name": "Madrid",
+      "from": "EZE",
+      "programs": ["smiles", "latam"],
+      "economy_per_pax": [70000, 100000],
+      "business_per_pax": [130000, 190000],
+      "airlines": ["Air Europa", "TAP", "Iberia"],
+      "priority": 3
+    },
+    {
+      "code": "YYZ",
+      "name": "Toronto",
+      "from": "EZE",
+      "programs": ["smiles", "latam"],
+      "economy_per_pax": [70000, 100000],
+      "business_per_pax": [130000, 180000],
+      "airlines": ["Air Canada", "Copa", "American"],
+      "priority": 4
+    },
+    {
+      "code": "LAX",
+      "name": "Los Angeles",
+      "from": "EZE",
+      "programs": ["smiles", "latam"],
+      "economy_per_pax": [70000, 100000],
+      "business_per_pax": [130000, 180000],
+      "airlines": ["American Airlines", "GOL + conexión"],
+      "priority": 4
+    },
+    {
+      "code": "CDG",
+      "name": "París",
+      "from": "EZE",
+      "programs": ["smiles", "latam"],
+      "economy_per_pax": [80000, 120000],
+      "business_per_pax": [150000, 220000],
+      "airlines": ["Air France", "TAP", "KLM"],
+      "priority": 4
+    }
+  ],
+  "sources": {
+    "smiles": {
+      "promos_url": "https://www.smiles.com.ar/",
+      "buy_miles_url": "https://www.smiles.com.ar/comprar-millas",
+      "club_url": "https://www.smiles.com.ar/club-smiles"
+    },
+    "latam": {
+      "promos_url": "https://www.latamairlines.com/ar/es/latam-pass",
+      "buy_points_url": "https://www.latamairlines.com/ar/es/latam-pass/comprar-puntos"
+    },
+    "blogs": [
+      { "name": "Ratamundo", "url": "https://ratamundo.com", "rss": "https://ratamundo.com/feed/" },
+      { "name": "PromillasBlog", "url": "https://promillasblog.com", "rss": "https://promillasblog.com/feed/" },
+      { "name": "Millas x el Mundo", "url": "https://millasxelmundo.com" }
+    ]
+  },
+  "price_tracking": {
+    "enabled": false,
+    "pax": { "adults": 2, "children": 1, "infants": 1 },
+    "family_pax_required": 3,
+    "cabin": "economy",
+    "target_months": ["2026-09", "2026-12", "2027-01"],
+    "sample_day": 15,
+    "routes": [
+      { "origin": "EZE", "destination": "MIA" },
+      { "origin": "EZE", "destination": "MAD" },
+      { "origin": "EZE", "destination": "FCO" },
+      { "origin": "EZE", "destination": "JNB" }
+    ],
+    "smiles_api": {
+      "search_url": "https://api.smiles.com.ar/api/flight/search",
+      "headers": {
+        "x-api-key": "",
+        "region": "ARGENTINA",
+        "channel": "Web"
+      },
+      "note": "Completar x-api-key (se captura desde el tráfico de red de smiles.com.ar al buscar un vuelo). Con enabled=false, priceScraper no consulta nada y no rompe la corrida."
+    }
+  },
+  "thresholds": {
+    "min_bonus_pct_alert": 150,
+    "max_price_per_mile_ars": 4.0,
+    "days_before_expiry_alert": 30,
+    "price_drop_pct_alert": 20
+  },
+  "notifications": {
+    "email": "aledelpozo@gmail.com",
+    "daily_summary_hour": 8,
+    "evening_scan_hour": 20,
+    "weekly_summary_day": 1
+  }
+}
