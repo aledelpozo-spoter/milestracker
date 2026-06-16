@@ -1,0 +1,73 @@
+name: MilesTracker Agent
+
+on:
+  schedule:
+    # 8:00 AM Argentina (UTC-3) = 11:00 UTC
+    - cron: '0 11 * * *'
+    # 8:00 PM Argentina (UTC-3) = 23:00 UTC
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - scrape-only
+          - notify-only
+          - dry-run
+
+env:
+  NODE_ENV: production
+
+jobs:
+  scan-and-notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright Chromium
+        if: inputs.mode != 'notify-only'
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Scraper
+        if: inputs.mode != 'notify-only'
+        run: |
+          if [ "${{ inputs.mode }}" = "dry-run" ]; then
+            node scraper.js --dry-run
+          else
+            node scraper.js
+          fi
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Run Price Scraper
+        if: inputs.mode != 'notify-only' && inputs.mode != 'dry-run'
+        run: node priceScraper.js
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Run Optimizer
+        if: inputs.mode != 'notify-only' && inputs.mode != 'dry-run'
+        run: node optimizer.js
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Send Notifications
+        if: inputs.mode != 'scrape-only' && inputs.mode != 'dry-run'
+        run: node notifier.js
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
