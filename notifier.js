@@ -31,20 +31,21 @@ async function main() {
   const now = new Date();
   const hour = parseInt(now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires', hour: 'numeric', hour12: false }));
   const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday
+  const isManual = process.env.GITHUB_EVENT_NAME === 'workflow_dispatch'; // corrida disparada a mano
 
   if (TEST_MODE) {
     await sendTestEmail(db);
     return;
   }
 
-  // Get latest optimization results
-  const latestOpt = await db.collection('history')
-    .where('type', '==', 'optimization')
+  // Get latest optimization results (sin índice compuesto: ordenamos por fecha
+  // y filtramos el tipo en memoria, así no requiere índice de Firestore)
+  const histSnap = await db.collection('history')
     .orderBy('date', 'desc')
-    .limit(1)
+    .limit(25)
     .get();
 
-  const optimization = latestOpt.docs[0]?.data() || null;
+  const optimization = histSnap.docs.map(d => d.data()).find(d => d.type === 'optimization') || null;
 
   // Get active promos
   const promosSnap = await db.collection('promos').where('is_active', '==', true).get();
@@ -138,8 +139,8 @@ async function main() {
       }
     }
 
-    // 2. Visión estratégica diaria (scan de la mañana, ~8 AM)
-    if (notifications.daily && (hour >= 7 && hour <= 9)) {
+    // 2. Visión estratégica diaria (scan de la mañana ~8 AM, o corrida manual)
+    if (notifications.daily && (isManual || (hour >= 7 && hour <= 9))) {
       console.log('   🧭 Enviando visión estratégica diaria...');
       const totals = computeTotals(userMiles);
       const strategy = buildStrategy(totals, activePromos, user, config);
