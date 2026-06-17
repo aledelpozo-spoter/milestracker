@@ -17,6 +17,7 @@
     "firebase-admin": "^13.0.0",
     "cheerio": "^1.0.0",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^6.9.16",
     "playwright": "^1.49.0"
   },
   "engines": {

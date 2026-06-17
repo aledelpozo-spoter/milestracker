@@ -144,7 +144,17 @@ async function main() {
       console.log('   🧭 Enviando visión estratégica diaria...');
       const totals = computeTotals(userMiles);
       const strategy = buildStrategy(totals, activePromos, user, config);
-      await sendEmail(db, email, buildStrategicBriefing(totals, strategy, activePromos));
+      const briefing = buildStrategicBriefing(totals, strategy, activePromos);
+
+      // Guardar en la cola de mail de Firestore (por si se usa la extensión)
+      await sendEmail(db, email, briefing);
+
+      // Envío DIRECTO por Gmail y WhatsApp (no requiere plan pago)
+      const bestSmiles = Math.max(0, ...activePromos.filter(p => p.program === 'smiles' && p.bonus_pct).map(p => p.bonus_pct));
+      const texto = `🧭 MilesTracker — Visión del día\n\n${strategy.headline}\n\n👉 ${strategy.action}\n\n💰 Saldo: ${totals.smiles.toLocaleString()} Smiles · ${totals.latam.toLocaleString()} LATAM\n🔥 Promos activas: ${activePromos.length} (mejor bonus Smiles: ${bestSmiles}%)`;
+      const okMail = await sendGmail(email, briefing.subject, briefing.html);
+      const okWa = await sendWhatsApp(texto);
+      console.log(`      Email directo: ${okMail ? 'enviado' : 'no configurado'} · WhatsApp: ${okWa ? 'enviado' : 'no configurado'}`);
 
       await db.collection('users').doc(user.id).collection('alerts').add({
         type: 'daily',
@@ -451,6 +461,37 @@ function buildWeeklySummary(promos, optimization, user) {
       </div>
     `
   };
+}
+
+// ---- Envío DIRECTO por Gmail (nodemailer + contraseña de aplicación) ----
+async function sendGmail(to, subject, html) {
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) return false;
+  try {
+    const nodemailer = (await import('nodemailer')).default;
+    const transport = nodemailer.createTransport({ service: 'gmail', auth: { user, pass } });
+    await transport.sendMail({ from: `MilesTracker <${user}>`, to: to || user, subject, html });
+    return true;
+  } catch (err) {
+    console.log(`   ⚠️ Error enviando Gmail: ${err.message}`);
+    return false;
+  }
+}
+
+// ---- Envío DIRECTO por WhatsApp (CallMeBot, gratis) ----
+async function sendWhatsApp(text) {
+  const phone = process.env.WHATSAPP_PHONE;
+  const apikey = process.env.CALLMEBOT_APIKEY;
+  if (!phone || !apikey) return false;
+  try {
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(apikey)}`;
+    const res = await fetch(url, { timeout: 15000 });
+    return res.ok;
+  } catch (err) {
+    console.log(`   ⚠️ Error enviando WhatsApp: ${err.message}`);
+    return false;
+  }
 }
 
 // ---- Send Email via Firestore ----
